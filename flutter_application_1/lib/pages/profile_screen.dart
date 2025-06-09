@@ -1,7 +1,7 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/pages/login.dart';
-import 'package:flutter_application_1/pages/home.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -11,8 +11,12 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  String _username = '';
-  String _email = '';
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  String _nama = 'Loading...'; // Ganti dari _username ke _nama
+  String _email = 'Loading...';
+  String _uid = '';
 
   @override
   void initState() {
@@ -21,30 +25,51 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _loadUserProfile() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _username = prefs.getString('username') ?? 'Unknown User';
-      _email = prefs.getString('email') ?? 'No Email';
-    });
+    User? user = _auth.currentUser;
+
+    if (user != null) {
+      _uid = user.uid;
+      _email = user.email ?? 'No Email';
+
+      try {
+        DocumentSnapshot userDoc =
+            await _firestore.collection('users').doc(_uid).get();
+
+        if (userDoc.exists) {
+          final data = userDoc.data() as Map<String, dynamic>?;
+
+          setState(() {
+            _nama = data?['nama'] ?? 'Unknown User'; // Ambil dari field 'nama'
+            _email = data?['email'] ?? _email;
+          });
+        } else {
+          setState(() {
+            _nama = 'Unknown User';
+          });
+        }
+      } catch (e) {
+        print("Error loading user data: $e");
+        setState(() {
+          _nama = 'Error loading nama';
+        });
+      }
+    }
   }
 
   Future<void> _logout() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('username');
-    await prefs.remove('email');
-    await prefs.remove('password');
-
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const LoginPage()),
-    );
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text("Logged out successfully"),
-        backgroundColor: Colors.green,
-      ),
-    );
+    await _auth.signOut();
+    if (context.mounted) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const LoginPage()),
+      );
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Logged out successfully"),
+          backgroundColor: Colors.green,
+        ),
+      );
+    }
   }
 
   @override
@@ -82,8 +107,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               child: ListTile(
                 leading: const Icon(Icons.person, color: Colors.brown),
-                title: const Text("Username"),
-                subtitle: Text(_username),
+                title: const Text("Nama"), // Ganti label Username ke Nama
+                subtitle: Text(_nama),
               ),
             ),
             const SizedBox(height: 16),

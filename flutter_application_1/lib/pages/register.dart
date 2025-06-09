@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/pages/login.dart';
@@ -15,7 +16,9 @@ class _RegisterPagesState extends State<RegisterPages> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
-  final auth = FirebaseAuth.instance;
+
+  final FirebaseAuth auth = FirebaseAuth.instance;
+  final FirebaseFirestore firestore = FirebaseFirestore.instance;
 
   void register() async {
     if (passwordController.text != confirmPasswordController.text) {
@@ -38,12 +41,23 @@ class _RegisterPagesState extends State<RegisterPages> {
         password: passwordController.text.trim(),
       );
 
+      // Update displayName di Firebase Auth
       await userCredential.user?.updateDisplayName(nameController.text.trim());
 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const HomePage()),
-      );
+      // Simpan data user ke Firestore
+      await firestore.collection('users').doc(userCredential.user!.uid).set({
+        'nama': nameController.text.trim(),
+        'email': emailController.text.trim(),
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+
+      // Navigasi ke HomePage
+      if (context.mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const HomePage()),
+        );
+      }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Register failed: $e")),
