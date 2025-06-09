@@ -1,8 +1,7 @@
-import 'package:flutter/gestures.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/pages/home.dart';
 import 'package:flutter_application_1/pages/register.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_application_1/pages/home.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -12,152 +11,149 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final TextEditingController _emailOrUsernameController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
+  final auth = FirebaseAuth.instance;
 
-  Future<void> _loginUser() async {
-    final emailOrUsername = _emailOrUsernameController.text;
-    final password = _passwordController.text;
-
-    if (emailOrUsername.isEmpty || password.isEmpty) {
-      _showSnackBar("Semua field harus diisi!");
-      return;
-    }
-
-    final prefs = await SharedPreferences.getInstance();
-    final storedUsername = prefs.getString('username');
-    final storedEmail = prefs.getString('email');
-    final storedPassword = prefs.getString('password');
-
-    if ((emailOrUsername == storedUsername || emailOrUsername == storedEmail) &&
-        password == storedPassword) {
-      _showSnackBar("Login berhasil!", success: true);
-
-      // Navigate to HomePage after successful login
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const HomePage()),
+  void login() async {
+    try {
+      await auth.signInWithEmailAndPassword(
+        email: emailController.text.trim(),
+        password: passwordController.text.trim(),
       );
-    } else {
-      _showSnackBar("Email/Username atau password salah");
+      Navigator.pushReplacement(
+          context, MaterialPageRoute(builder: (_) => const HomePage()));
+    } catch (e) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text("Login failed: $e")));
     }
   }
 
-  void _showSnackBar(String message, {bool success = false}) {
-    final snackBar = SnackBar(
-      content: Text(message),
-      backgroundColor: success ? Colors.green : Colors.red,
-    );
-    ScaffoldMessenger.of(context).showSnackBar(snackBar);
-  }
+  final Color brownDark = const Color(0xFF4E342E); // coklat gelap
+  final Color brownLight = const Color(0xFF6D4C41); // coklat terang
+  final Color brownSoft = const Color(0xFF8D6E63); // coklat lebih terang
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SingleChildScrollView(
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(25, 75, 25, 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+      backgroundColor: brownDark,
+      appBar: AppBar(
+        title: const Text('Login'),
+        backgroundColor: brownDark,
+        elevation: 0,
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text(
+                'Selamat Datang',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 40),
+              Theme(
+                data: Theme.of(context).copyWith(
+                  primaryColor: Colors.white,
+                ),
+                child: Column(
                   children: [
-                    IconButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
-                      icon: const Icon(Icons.arrow_back),
+                    TextField(
+                      controller: emailController,
+                      cursorColor: Colors.white,
+                      decoration: InputDecoration(
+                        labelText: 'Email',
+                        labelStyle: const TextStyle(color: Colors.white70),
+                        prefixIcon:
+                            const Icon(Icons.email, color: Colors.white70),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: Colors.white54),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: Colors.white),
+                        ),
+                        filled: true,
+                        fillColor: brownLight,
+                      ),
+                      keyboardType: TextInputType.emailAddress,
+                      style: const TextStyle(color: Colors.white),
                     ),
-                    const Spacer(),
-                    Image.asset('lib/images/logo-gowine.png', scale: 3),
+                    const SizedBox(height: 20),
+                    TextField(
+                      controller: passwordController,
+                      cursorColor: Colors.white,
+                      decoration: InputDecoration(
+                        labelText: 'Password',
+                        labelStyle: const TextStyle(color: Colors.white70),
+                        prefixIcon:
+                            const Icon(Icons.lock, color: Colors.white70),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: Colors.white54),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: Colors.white),
+                        ),
+                        filled: true,
+                        fillColor: brownLight,
+                      ),
+                      obscureText: true,
+                      style: const TextStyle(color: Colors.white),
+                    ),
                   ],
                 ),
-                const SizedBox(height: 30),
-                const Text(
-                  "Welcome Back!",
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
+              ),
+              const SizedBox(height: 30),
+              ElevatedButton(
+                onPressed: login,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: brownSoft,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
                   ),
+                  elevation: 5,
                 ),
-                const SizedBox(height: 20),
-                TextField(
-                  controller: _emailOrUsernameController,
-                  decoration: InputDecoration(
-                    labelText: "Email atau Username",
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(5),
-                    ),
-                    filled: true,
-                    fillColor: Colors.grey[100],
-                  ),
+                child: const Text(
+                  "Login",
+                  style: TextStyle(fontSize: 18, color: Colors.white),
                 ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: _passwordController,
-                  obscureText: true,
-                  decoration: InputDecoration(
-                    labelText: "Password",
-                    suffixIcon: const Icon(Icons.visibility),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(5),
-                    ),
-                    filled: true,
-                    fillColor: Colors.grey[100],
-                  ),
-                ),
-                const SizedBox(height: 30),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.brown,
-                      padding: const EdgeInsets.symmetric(vertical: 20),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                    onPressed: _loginUser,
-                    child: const Text(
-                      "Login",
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.white,
-                        fontWeight: FontWeight.w800,
-                      ),
+              ),
+              const SizedBox(height: 16),
+              Center(
+                child: TextButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const RegisterPages()),
+                    );
+                  },
+                  child: const Text(
+                    "Belum punya akun? Register",
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontWeight: FontWeight.w600,
+                      decoration: TextDecoration.underline,
                     ),
                   ),
                 ),
-                const SizedBox(height: 70),
-                Center(
-                  child: RichText(
-                    text: TextSpan(
-                      text: "Belum punya akun? ",
-                      style: const TextStyle(color: Colors.black),
-                      children: [
-                        TextSpan(
-                          text: "Register Now",
-                          style: const TextStyle(
-                            color: Colors.blue,
-                            decoration: TextDecoration.underline,
-                          ),
-                          recognizer: TapGestureRecognizer()
-                            ..onTap = () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const RegisterPages(),
-                                ),
-                              );
-                            },
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
