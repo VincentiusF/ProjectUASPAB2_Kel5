@@ -3,6 +3,7 @@ import 'package:flutter_application_1/pages/favorite.dart';
 import 'package:flutter_application_1/pages/keranjang.dart';
 import 'package:flutter_application_1/pages/search.dart';
 import 'package:flutter_application_1/pages/profile_screen.dart';
+import 'package:flutter_application_1/pages/wine_recommendation.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -171,7 +172,66 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 16),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: InkWell(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const WineRecommendationPage()),
+                  );
+                },
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
+                  decoration: BoxDecoration(
+                    color: Colors.brown.shade50,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.brown.shade200),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.2),
+                        spreadRadius: 1,
+                        blurRadius: 3,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.wine_bar, color: Colors.brown, size: 32),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: const [
+                            Text(
+                              'Dapatkan Rekomendasi Wine',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.brown,
+                              ),
+                            ),
+                            SizedBox(height: 4),
+                            Text(
+                              'Bingung pilih wine? Coba rekomendasi AI kami!',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.black87,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Icon(Icons.arrow_forward_ios, color: Colors.brown),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Row(

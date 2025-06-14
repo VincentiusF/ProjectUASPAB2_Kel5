@@ -96,7 +96,7 @@ List<Wine> wineData = [
       region: "Other Region",
       country: "Chile",
       price: "365.500",
-      imagePath: "lib/images/wine10.jpeg",
+      imagePath: "lib/images/wine10.jpg",
       type: "sparkling",
       description:
           "Tierra Del Fuego Cabernet Sauvignon 2021 adalah wine merah asal Chile yang terbuat dari varietas Cabernet Sauvignon, salah satu anggur paling populer dan dihargai di dunia. Tierra Del Fuego, produsen yang berfokus pada menghasilkan wine berkualitas dengan harga terjangkau, memanfaatkan terroir yang unik di wilayah Chile untuk menghasilkan wine yang berkarakter.",
