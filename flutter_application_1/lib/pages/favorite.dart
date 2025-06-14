@@ -20,20 +20,29 @@ class _FavoritePageState extends State<FavoritePage> {
     final prefs = await SharedPreferences.getInstance();
     String? favoritesData = prefs.getString('favorites');
     if (favoritesData != null) {
-      setState(() {
-        favoriteItems = List<Map<String, dynamic>>.from(json.decode(favoritesData));
-      });
+      try {
+        final List<dynamic> decoded = json.decode(favoritesData);
+        setState(() {
+          favoriteItems = decoded
+              .whereType<Map<String, dynamic>>() // hanya data map
+              .where((item) => item['id'] != null) // pastikan ada id
+              .toList();
+        });
+      } catch (e) {
+        print('Error loading favorites: $e');
+      }
     }
   }
 
-  Future<void> _removeFromFavorites(int id) async {
+  Future<void> _removeFromFavorites(dynamic id) async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      favoriteItems.removeWhere((item) => item['id'] == id);
+      favoriteItems
+          .removeWhere((item) => item['id']?.toString() == id?.toString());
     });
-    prefs.setString('favorites', json.encode(favoriteItems));
+    await prefs.setString('favorites', json.encode(favoriteItems));
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Item removed from favorites')),
+      const SnackBar(content: Text('Wine berhasil dihapus dari favorit')),
     );
   }
 
@@ -43,11 +52,11 @@ class _FavoritePageState extends State<FavoritePage> {
       appBar: AppBar(
         title: const Text(
           "Favorites",
-          style: TextStyle(color: Colors.black),
+          style: TextStyle(color: Colors.white),
         ),
         backgroundColor: Colors.brown,
         elevation: 1,
-        iconTheme: const IconThemeData(color: Colors.black),
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: favoriteItems.isEmpty
           ? const Center(
@@ -60,29 +69,57 @@ class _FavoritePageState extends State<FavoritePage> {
               itemCount: favoriteItems.length,
               itemBuilder: (context, index) {
                 final item = favoriteItems[index];
+
+                final image = item['image'] ?? 'lib/images/no-image.png';
+                final name = item['name'] ?? 'Unknown Wine';
+                final price = item['price'] ?? 0;
+                final id = item['id'] ?? 'unknown';
+
                 return Card(
-                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  margin:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   elevation: 4,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: ListTile(
-                    leading: CircleAvatar(
-                      backgroundImage: AssetImage('lib/images/wine${item['id']}.jpg'),
+                    leading: ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: image.toString().startsWith('http')
+                          ? Image.network(
+                              image,
+                              width: 50,
+                              height: 50,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Image.asset(
+                                  'lib/images/no-image.png',
+                                  width: 50,
+                                  height: 50,
+                                  fit: BoxFit.cover,
+                                );
+                              },
+                            )
+                          : Image.asset(
+                              image,
+                              width: 50,
+                              height: 50,
+                              fit: BoxFit.cover,
+                            ),
                     ),
                     title: Text(
-                      item['name'],
+                      name,
                       style: const TextStyle(fontWeight: FontWeight.bold),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
                     subtitle: Text(
-                      'Rp ${item['price'].toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},')}',
+                      'Rp ${price.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (match) => '${match[1]},')}',
                       style: const TextStyle(color: Colors.red),
                     ),
                     trailing: IconButton(
                       icon: const Icon(Icons.delete, color: Colors.red),
-                      onPressed: () => _removeFromFavorites(item['id']),
+                      onPressed: () => _removeFromFavorites(id),
                     ),
                   ),
                 );

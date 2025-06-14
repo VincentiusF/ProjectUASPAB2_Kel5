@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_application_1/pages/favorite.dart';
-import 'package:flutter_application_1/pages/keranjang.dart';
 import 'package:flutter_application_1/pages/search.dart';
 import 'package:flutter_application_1/pages/profile_screen.dart';
 import 'package:flutter_application_1/pages/wine_recommendation.dart';
@@ -15,34 +16,37 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  List<Map<String, dynamic>> items = [
-    {
-      'id': 1,
-      'name': 'VINA VENTISQUERO RESERVA MERLOT 88AG 2021',
-      'price': 447000,
-      'image': 'wine1.jpg'
-    },
-    {
-      'id': 2,
-      'name': 'VINA VENTISQUERO CLASSICO CABERNET SAUVIGNON 2018',
-      'price': 516000,
-      'image': 'wine2.jpg'
-    },
-    {
-      'id': 3,
-      'name': 'MONTES ALPHA MERLOT',
-      'price': 516000,
-      'image': 'wine3.jpg',
-    },
-    {
-      'id': 4,
-      'name': 'CATENA ALAMOS MALBEC',
-      'price': 447000,
-      'image': 'wine4.jpg'
-    },
-  ];
-
+  List<Map<String, dynamic>> items = [];
+  final databaseRef = FirebaseDatabase.instance.ref('wines');
   String _selectedSort = 'Popularity';
+  int _selectedIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _listenToWineData();
+  }
+
+  void _listenToWineData() {
+    databaseRef.onValue.listen((event) {
+      final data = event.snapshot.value;
+      if (data != null && data is Map) {
+        List<Map<String, dynamic>> loadedItems = [];
+        data.forEach((key, value) {
+          loadedItems.add({
+            'id': key,
+            'name': value['name'],
+            'price': value['price'],
+            'image': value['image'],
+          });
+        });
+        setState(() {
+          items = loadedItems;
+          _sortItems(_selectedSort);
+        });
+      }
+    });
+  }
 
   Future<void> _addToCart(Map<String, dynamic> item) async {
     final prefs = await SharedPreferences.getInstance();
@@ -108,8 +112,6 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  int _selectedIndex = 0;
-
   void _onBottomNavTapped(int index) {
     setState(() {
       _selectedIndex = index;
@@ -121,7 +123,7 @@ class _HomePageState extends State<HomePage> {
       case 1:
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => WineSearchPage()),
+          MaterialPageRoute(builder: (context) => WineInputPage()),
         );
         break;
       case 2:
@@ -145,18 +147,6 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         title: const Text("Go Wine"),
         backgroundColor: Colors.brown,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.shopping_cart),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const CartPage()),
-              );
-            },
-            tooltip: 'Cart',
-          ),
-        ],
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -179,12 +169,14 @@ class _HomePageState extends State<HomePage> {
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const WineRecommendationPage()),
+                    MaterialPageRoute(
+                        builder: (context) => const WineRecommendationPage()),
                   );
                 },
                 child: Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
+                  padding: const EdgeInsets.symmetric(
+                      vertical: 16.0, horizontal: 16.0),
                   decoration: BoxDecoration(
                     color: Colors.brown.shade50,
                     borderRadius: BorderRadius.circular(12),
@@ -277,7 +269,6 @@ class _HomePageState extends State<HomePage> {
                 itemCount: items.length,
                 itemBuilder: (context, index) {
                   final item = items[index];
-                  final imageIndex = index + 1;
                   return Card(
                     elevation: 4,
                     shape: RoundedRectangleBorder(
@@ -290,8 +281,8 @@ class _HomePageState extends State<HomePage> {
                           child: Container(
                             decoration: BoxDecoration(
                               image: DecorationImage(
-                                image: AssetImage(
-                                    'lib/images/wine$imageIndex.jpg'),
+                                image:
+                                    AssetImage('lib/images/${item['image']}'),
                                 fit: BoxFit.cover,
                               ),
                               borderRadius: const BorderRadius.vertical(
@@ -324,21 +315,12 @@ class _HomePageState extends State<HomePage> {
                               ),
                               const SizedBox(height: 5),
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
-                                  ElevatedButton(
-                                    onPressed: () => _addToCart(item),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.brown,
-                                      foregroundColor: Colors.white,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(5),
-                                      ),
-                                    ),
-                                    child: const Text('Add to Cart'),
-                                  ),
                                   IconButton(
-                                    icon: const Icon(Icons.favorite_border, color: Colors.red),
+                                    icon: const Icon(Icons.favorite_border,
+                                        color: Colors.red),
                                     onPressed: () => _addToFavorites(item),
                                   ),
                                 ],
@@ -364,8 +346,9 @@ class _HomePageState extends State<HomePage> {
         type: BottomNavigationBarType.fixed,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Search'),
-          BottomNavigationBarItem(icon: Icon(Icons.favorite), label: 'Favorite'),
+          BottomNavigationBarItem(icon: Icon(Icons.input), label: 'Input'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.favorite), label: 'Favorite'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
         ],
         onTap: _onBottomNavTapped,
