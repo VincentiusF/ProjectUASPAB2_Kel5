@@ -24,8 +24,8 @@ class _FavoritePageState extends State<FavoritePage> {
         final List<dynamic> decoded = json.decode(favoritesData);
         setState(() {
           favoriteItems = decoded
-              .whereType<Map<String, dynamic>>() // hanya data map
-              .where((item) => item['id'] != null) // pastikan ada id
+              .whereType<Map<String, dynamic>>()
+              .where((item) => item['id'] != null)
               .toList();
         });
       } catch (e) {
@@ -49,23 +49,25 @@ class _FavoritePageState extends State<FavoritePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.brown.shade50,
       appBar: AppBar(
         title: const Text(
           "Favorites",
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
         ),
         backgroundColor: Colors.brown,
-        elevation: 1,
+        elevation: 2,
         iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: favoriteItems.isEmpty
           ? const Center(
               child: Text(
-                "No favorites yet!",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                "Favorite Kosong!",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
               ),
             )
           : ListView.builder(
+              padding: const EdgeInsets.all(16),
               itemCount: favoriteItems.length,
               itemBuilder: (context, index) {
                 final item = favoriteItems[index];
@@ -75,57 +77,63 @@ class _FavoritePageState extends State<FavoritePage> {
                 final price = item['price'] ?? 0;
                 final id = item['id'] ?? 'unknown';
 
-                return Card(
-                  margin:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.brown.withOpacity(0.2),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      )
+                    ],
                   ),
                   child: ListTile(
+                    contentPadding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     leading: ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(12),
                       child: Builder(
                         builder: (_) {
                           if (image.toString().startsWith('http')) {
                             return Image.network(
                               image,
-                              width: 50,
-                              height: 50,
+                              width: 60,
+                              height: 60,
                               fit: BoxFit.cover,
                               errorBuilder: (context, error, stackTrace) {
                                 return Image.asset(
                                   'lib/images/no-image.png',
-                                  width: 50,
-                                  height: 50,
+                                  width: 60,
+                                  height: 60,
                                   fit: BoxFit.cover,
                                 );
                               },
                             );
                           } else if (image.toString().length > 100) {
-                            // asumsi base64 panjang dan bukan file path
                             try {
                               final bytes = base64Decode(image);
                               return Image.memory(
                                 bytes,
-                                width: 50,
-                                height: 50,
+                                width: 60,
+                                height: 60,
                                 fit: BoxFit.cover,
                               );
                             } catch (e) {
                               return Image.asset(
                                 'lib/images/no-image.png',
-                                width: 50,
-                                height: 50,
+                                width: 60,
+                                height: 60,
                                 fit: BoxFit.cover,
                               );
                             }
                           } else {
-                            // fallback ke asset jika bukan base64
                             return Image.asset(
                               image,
-                              width: 50,
-                              height: 50,
+                              width: 60,
+                              height: 60,
                               fit: BoxFit.cover,
                             );
                           }
@@ -134,16 +142,25 @@ class _FavoritePageState extends State<FavoritePage> {
                     ),
                     title: Text(
                       name,
-                      style: const TextStyle(fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 16,
+                      ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    subtitle: Text(
-                      'Rp ${price.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (match) => '${match[1]},')}',
-                      style: const TextStyle(color: Colors.red),
+                    subtitle: Padding(
+                      padding: const EdgeInsets.only(top: 4.0),
+                      child: Text(
+                        'Rp ${price.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (match) => '${match[1]},')}',
+                        style: const TextStyle(
+                          color: Colors.brown,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
                     ),
                     trailing: IconButton(
-                      icon: const Icon(Icons.delete, color: Colors.red),
+                      icon: const Icon(Icons.delete_outline, color: Colors.red),
                       onPressed: () => _removeFromFavorites(id),
                     ),
                   ),
