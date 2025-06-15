@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
@@ -47,13 +48,21 @@ class _WineInputPageState extends State<WineInputPage> {
 
   void _submitForm() async {
     if (_formKey.currentState!.validate()) {
+      if (_selectedImageBytes == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Harap pilih gambar terlebih dahulu')),
+        );
+        return;
+      }
+
       final wineData = {
         'name': _nameController.text.trim(),
         'region': _regionController.text.trim(),
         'price': _priceController.text.trim(),
-        'imageFileName': _imageFileName ?? '',
         'type': _selectedType,
         'country': _selectedCountry,
+        'imageFileName': _imageFileName ?? '',
+        'image': base64Encode(_selectedImageBytes!), // ✅ simpan base64
       };
 
       await _database.push().set(wineData);

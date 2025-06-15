@@ -85,8 +85,10 @@ class _FavoritePageState extends State<FavoritePage> {
                   child: ListTile(
                     leading: ClipRRect(
                       borderRadius: BorderRadius.circular(8),
-                      child: image.toString().startsWith('http')
-                          ? Image.network(
+                      child: Builder(
+                        builder: (_) {
+                          if (image.toString().startsWith('http')) {
+                            return Image.network(
                               image,
                               width: 50,
                               height: 50,
@@ -99,13 +101,36 @@ class _FavoritePageState extends State<FavoritePage> {
                                   fit: BoxFit.cover,
                                 );
                               },
-                            )
-                          : Image.asset(
+                            );
+                          } else if (image.toString().length > 100) {
+                            // asumsi base64 panjang dan bukan file path
+                            try {
+                              final bytes = base64Decode(image);
+                              return Image.memory(
+                                bytes,
+                                width: 50,
+                                height: 50,
+                                fit: BoxFit.cover,
+                              );
+                            } catch (e) {
+                              return Image.asset(
+                                'lib/images/no-image.png',
+                                width: 50,
+                                height: 50,
+                                fit: BoxFit.cover,
+                              );
+                            }
+                          } else {
+                            // fallback ke asset jika bukan base64
+                            return Image.asset(
                               image,
                               width: 50,
                               height: 50,
                               fit: BoxFit.cover,
-                            ),
+                            );
+                          }
+                        },
+                      ),
                     ),
                     title: Text(
                       name,

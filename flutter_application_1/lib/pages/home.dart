@@ -281,8 +281,8 @@ class _HomePageState extends State<HomePage> {
                           child: Container(
                             decoration: BoxDecoration(
                               image: DecorationImage(
-                                image:
-                                    AssetImage('lib/images/${item['image']}'),
+                                image: MemoryImage(
+                                    base64Decode(item['image'])), // ✅ GANTI INI
                                 fit: BoxFit.cover,
                               ),
                               borderRadius: const BorderRadius.vertical(
