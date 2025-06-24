@@ -1,8 +1,7 @@
-Project UAS PAB
+TUGAS PROJECT UAS PAB 2 (Aplikasi Wine)
 
-Pembagian Tugas Coding
-
-Felix : Register, Keranjang
-Vincentius: Search, detail
-Steven Tan : Home, Favorite
-M Rifqan Zalbina : Profile, Login
+Nama 
+- Vincentius Fernando
+- M Rifqan Zalbina
+- Felix
+- Steven Tan
