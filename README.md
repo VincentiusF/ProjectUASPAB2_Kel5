@@ -1,4 +1,4 @@
-TUGAS PROJECT UAS PAB
+TUGAS PROJECT UAS PAB (Aplikasi Wine)
 
 Nama 
 - Vincentius Fernando
